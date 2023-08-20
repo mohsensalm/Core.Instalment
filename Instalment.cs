@@ -74,22 +74,25 @@ namespace Core.DLL.Instalment
                 {
                     PaymentedUntilNow = PaymentedUntilNow + FacilityAmount;
                 }
-                var ShareAmount = CalculateLoanShare(model.WholeAmount, model.ProfitRate, model.DurationOfLoanPayment, PaymentedUntilNow);
+                int Year = (Counter * model.DurationOfLoanPayment) / 12;
+
+                PayDate = $"{_pc.GetYear(DateTime.Now.AddYears(Year))}/{_pc.GetMonth(DateTime.Now.AddMonths((Counter - 1) * model.DurationOfLoanPayment))}/{_pc.GetDayOfMonth(DateTime.Now)}";
+                int yearOfShare = _pc.GetYear(DateTime.Now.AddYears(Year));
+                int monthOfShare = _pc.GetMonth(DateTime.Now.AddMonths((Counter - 1) * model.DurationOfLoanPayment));
+
+                var ShareAmount = CalculateLoanShare(model.WholeAmount, model.ProfitRate, model.DurationOfLoanPayment, PaymentedUntilNow, _pc.GetDaysInMonth(yearOfShare, monthOfShare));
                 double RemainAmount;
-                int Year=(Counter*model.DurationOfLoanPayment)/12;
-               
-                PayDate = $"{_pc.GetYear(DateTime.Now.AddYears(Year))}/{_pc.GetMonth(DateTime.Now.AddMonths((Counter-1)*model.DurationOfLoanPayment))}/{_pc.GetDayOfMonth(DateTime.Now)}";
                 if (Counter == model.CountOfLoan)
                 {
                     RemainAmount = 0;
-                    Facility.Add(new FacilityModel { Id = Counter, Amount = (int)FacilityAmount, OrginalAmount = (FacilityAmount - ShareAmount), RemainAmount = RemainAmount, RemainOrginalAmount = RemainAmount, ShareAmount = ShareAmount, FacilityDate = PayDate });
+                    Facility.Add(new FacilityModel { Id = Counter, Amount = FacilityAmount, OrginalAmount = (FacilityAmount - ShareAmount), RemainAmount = RemainAmount, RemainOrginalAmount = RemainAmount, ShareAmount = ShareAmount, FacilityDate = PayDate });
 
 
                 }
                 else
                 {
                     RemainAmount = CalculateRemainLoan(model.CountOfLoan, FacilityAmount, Counter) + ShareAmount;
-                    Facility.Add(new FacilityModel { Id = Counter, Amount = (int)FacilityAmount, OrginalAmount = (FacilityAmount - ShareAmount), RemainAmount = RemainAmount, RemainOrginalAmount = RemainAmount - ShareAmount, ShareAmount = ShareAmount, FacilityDate = PayDate });
+                    Facility.Add(new FacilityModel { Id = Counter, Amount = FacilityAmount, OrginalAmount = (FacilityAmount - ShareAmount), RemainAmount = RemainAmount, RemainOrginalAmount =  RemainAmount - ShareAmount, ShareAmount = ShareAmount, FacilityDate = PayDate });
 
                 }
 
@@ -97,9 +100,11 @@ namespace Core.DLL.Instalment
 
             }
 
-            InstalmentResponseModel Response = new InstalmentResponseModel();
-            Response.FacilityList = Facility;
-            Response.FacilityAmount = FacilityAmount;
+            InstalmentResponseModel Response = new InstalmentResponseModel
+            {
+                FacilityList = Facility,
+                FacilityAmount = FacilityAmount
+            };
 
 
             return Response;
@@ -130,23 +135,26 @@ namespace Core.DLL.Instalment
                 {
                     PaymentedUntilNow = PaymentedUntilNow + FacilityAmount;
                 }
-                var ShareAmount = RoundingNumber(CalculateLoanShare(model.WholeAmount, model.ProfitRate, model.DurationOfLoanPayment, PaymentedUntilNow));
-                double RemainAmount;
                 int Year = (Counter * model.DurationOfLoanPayment) / 12;
-
                 PayDate = $"{_pc.GetYear(DateTime.Now.AddYears(Year))}/{_pc.GetMonth(DateTime.Now.AddMonths((Counter - 1) * model.DurationOfLoanPayment))}/{_pc.GetDayOfMonth(DateTime.Now)}";
+                int yearOfShare = _pc.GetYear(DateTime.Now.AddYears(Year));
+                int monthOfShare = _pc.GetMonth(DateTime.Now.AddMonths((Counter - 1) * model.DurationOfLoanPayment));
 
+
+                var ShareAmount = RoundingNumber(CalculateLoanShare(model.WholeAmount, model.ProfitRate, model.DurationOfLoanPayment, PaymentedUntilNow, _pc.GetDaysInMonth(yearOfShare, monthOfShare)));
+                double RemainAmount;
+                
                 if (Counter == model.CountOfLoan)
                 {
                     RemainAmount = 0;
 
-                    Facility.Add(new FacilityModel { Id = Counter, Amount = (int)FacilityAmount, OrginalAmount = FacilityAmount - ShareAmount, RemainAmount = RemainAmount, RemainOrginalAmount = RemainAmount, ShareAmount = ShareAmount, FacilityDate = PayDate });
+                    Facility.Add(new FacilityModel { Id = Counter, Amount = (int)FacilityAmount, OrginalAmount = (int)(FacilityAmount - ShareAmount), RemainAmount = (int)RemainAmount, RemainOrginalAmount = (int)RemainAmount, ShareAmount = (int)ShareAmount, FacilityDate = PayDate });
 
                 }
                 else
                 {
                     RemainAmount = RoundingNumber(CalculateRemainLoan(model.CountOfLoan, FacilityAmount, Counter)) + ShareAmount;
-                    Facility.Add(new FacilityModel { Id = Counter, Amount = (int)FacilityAmount, OrginalAmount = FacilityAmount - ShareAmount, RemainAmount = RemainAmount, RemainOrginalAmount = RemainAmount - ShareAmount, ShareAmount = ShareAmount, FacilityDate = PayDate });
+                    Facility.Add(new FacilityModel { Id = Counter, Amount = (int)FacilityAmount, OrginalAmount = (int)(FacilityAmount - ShareAmount), RemainAmount = (int)RemainAmount, RemainOrginalAmount = (int)(RemainAmount - ShareAmount), ShareAmount = (int)ShareAmount, FacilityDate = PayDate });
                 }
                 //FAcilityPayTime = FAcilityPayTime.AddMonths(model.DurationOfLoanPayment);
 
@@ -169,10 +177,11 @@ namespace Core.DLL.Instalment
         {
             return Math.Ceiling((number / 100) * 100);
         }
-        public double CalculateLoanShare(double wholeAmount, int profitRate, int durationOfLoanPaymentMonth, double orginalLoanPaymentTillNow)
+        public double CalculateLoanShare(double wholeAmount, int profitRate, int durationOfLoanPaymentMonth, double orginalLoanPaymentTillNow,int daysOfMonth)
         {
             var j = (double)profitRate / 100;
-            double A = (j * 30 * durationOfLoanPaymentMonth * (wholeAmount - orginalLoanPaymentTillNow)) / 365;
+            var l = daysOfMonth;
+            double A = (j * l * durationOfLoanPaymentMonth * (wholeAmount - orginalLoanPaymentTillNow)) / 365;
 
             return A;
         }
@@ -215,7 +224,7 @@ namespace Core.DLL.Instalment
     public class FacilityModel
     {
         public byte Id { get; set; }
-        public int Amount { get; set; }
+        public double Amount { get; set; }
         public double ShareAmount { get; set; }
         public double OrginalAmount { get; set; }
         public double RemainOrginalAmount { get; set; }
