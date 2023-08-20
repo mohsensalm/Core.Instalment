@@ -148,13 +148,13 @@ namespace Core.DLL.Instalment
                 {
                     RemainAmount = 0;
 
-                    Facility.Add(new FacilityModel { Id = Counter, Amount = (int)FacilityAmount, OrginalAmount = (int)(FacilityAmount - ShareAmount), RemainAmount = (int)RemainAmount, RemainOrginalAmount = (int)RemainAmount, ShareAmount = (int)ShareAmount, FacilityDate = PayDate });
+                    Facility.Add(new FacilityModel { Id = Counter, Amount = FacilityAmount, OrginalAmount = (FacilityAmount - ShareAmount), RemainAmount = RemainAmount, RemainOrginalAmount = RemainAmount, ShareAmount = ShareAmount, FacilityDate = PayDate });
 
                 }
                 else
                 {
                     RemainAmount = RoundingNumber(CalculateRemainLoan(model.CountOfLoan, FacilityAmount, Counter)) + ShareAmount;
-                    Facility.Add(new FacilityModel { Id = Counter, Amount = (int)FacilityAmount, OrginalAmount = (int)(FacilityAmount - ShareAmount), RemainAmount = (int)RemainAmount, RemainOrginalAmount = (int)(RemainAmount - ShareAmount), ShareAmount = (int)ShareAmount, FacilityDate = PayDate });
+                    Facility.Add(new FacilityModel { Id = Counter, Amount = FacilityAmount, OrginalAmount = (FacilityAmount - ShareAmount), RemainAmount = RemainAmount, RemainOrginalAmount = (RemainAmount - ShareAmount), ShareAmount = ShareAmount, FacilityDate = PayDate });
                 }
                 //FAcilityPayTime = FAcilityPayTime.AddMonths(model.DurationOfLoanPayment);
 
