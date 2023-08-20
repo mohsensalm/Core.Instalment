@@ -209,8 +209,8 @@ namespace Core.DLL.Instalment
         public List<FacilityModel>? FacilityList { get; set; }
         public double FacilityAmount { get; set; }
         public double TotalWholeAmount { get { return FacilityList.Select(s => s.Amount).Sum(); } }
-        public double TotalShareAmount { get { return FacilityList.Select(s => s.ShareAmount).Sum(); } }
-        public double TotalOriginalAmount { get { return FacilityList.Select(s => s.OrginalAmount).Sum(); } }
+        public double TotalShareAmount => FacilityList.Select(s => s.ShareAmount).Sum();
+        public double TotalOriginalAmount => FacilityList.Select(s => s.OrginalAmount).Sum();
     }
     public class FacilityModel
     {
@@ -220,7 +220,7 @@ namespace Core.DLL.Instalment
         public double OrginalAmount { get; set; }
         public double RemainOrginalAmount { get; set; }
         public double RemainAmount { get; set; }
-        public string FacilityDate { get; set; }
+        public string? FacilityDate { get; set; }
 
 
 
